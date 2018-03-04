@@ -11,49 +11,78 @@ import UIKit
 class ViewController: UIViewController, URLSessionDownloadDelegate {
     
 
-    let shapeLayer = CAShapeLayer()
+    var shapeLayer: CAShapeLayer!
 
+    var pulsatingLayer: CAShapeLayer!
+    
     let percentagLabel: UILabel = {
         let lb = UILabel()
         lb.text = "Start"
         lb.textAlignment = .center
+        lb.textColor = .white
         lb.font = UIFont.boldSystemFont(ofSize: 32)
         return lb
     }()
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    private func createCircleShapeLayer(strokeColor: UIColor, fillColor: UIColor) -> CAShapeLayer {
+    
+        let layer = CAShapeLayer()
+        let circularPath = UIBezierPath(arcCenter: .zero, radius: 100, startAngle: -0.5 * CGFloat.pi, endAngle: 1.5 * CGFloat.pi, clockwise: true)
         
+        layer.path = circularPath.cgPath
+        layer.strokeColor = strokeColor.cgColor
+        layer.fillColor = fillColor.cgColor
+        layer.lineWidth = 20
+        layer.lineCap = kCALineCapRound
+        layer.position = view.center
+    
+        return layer
+    }
+    
+    fileprivate func setupCircleLayer() {
+        
+        pulsatingLayer = createCircleShapeLayer(strokeColor: .clear, fillColor: UIColor(red: 86/255, green: 30/255, blue: 63/255, alpha: 1))
+        view.layer.addSublayer(pulsatingLayer!)
+        
+        animatePulsatingLayer()
+        
+        let trackLayer = createCircleShapeLayer(strokeColor: UIColor(red: 56/255, green: 25/255, blue: 49/255, alpha: 1), fillColor: UIColor(red: 21/255, green: 22/255, blue: 23/255, alpha: 1))
+        view.layer.addSublayer(trackLayer)
+        
+        shapeLayer = createCircleShapeLayer(strokeColor: UIColor(red: 234/255, green: 46/255, blue: 111/255, alpha: 1), fillColor: .clear)
+        //shapeLayer.transform = CATransform3DMakeRotation(-CGFloat.pi / 2 , 0, 0, 1)
+        shapeLayer.strokeEnd = 0
+        view.layer.addSublayer(shapeLayer)
+ 
+    }
+    
+    fileprivate func setupPercentageLabel() {
         view.addSubview(percentagLabel)
         percentagLabel.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
         percentagLabel.center = view.center
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
         
-        let circularPath = UIBezierPath(arcCenter: .zero, radius: 100, startAngle: -0.5 * CGFloat.pi, endAngle: 1.5 * CGFloat.pi, clockwise: true)
+        view.backgroundColor = UIColor(red: 21/255, green: 22/255, blue: 23/255, alpha: 1)
         
-        let trackLayer = CAShapeLayer()
-        trackLayer.path = circularPath.cgPath
-        trackLayer.strokeColor = UIColor.lightGray.cgColor
-        trackLayer.fillColor = UIColor.clear.cgColor
-        trackLayer.lineWidth = 10
-        trackLayer.lineCap = kCALineCapRound
-        trackLayer.position = view.center
-        view.layer.addSublayer(trackLayer)
-        
-        
-        shapeLayer.path = circularPath.cgPath
-        shapeLayer.strokeColor = UIColor.red.cgColor
-        shapeLayer.fillColor = UIColor.clear.cgColor
-        shapeLayer.lineWidth = 10
-        shapeLayer.lineCap = kCALineCapRound
-        shapeLayer.position = view.center
-        
-        //shapeLayer.transform = CATransform3DMakeRotation(-CGFloat.pi / 2 , 0, 0, 1)
-        
-        shapeLayer.strokeEnd = 0
-        
-        view.layer.addSublayer(shapeLayer)
+        setupCircleLayer()
         
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTap)))
+    
+        setupPercentageLabel()
+    }
+    
+    private func animatePulsatingLayer(){
+        let animation = CABasicAnimation(keyPath: "transform.scale")
+        animation.toValue = 1.5
+        animation.duration = 0.8
+        animation.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+        animation.autoreverses = true
+        animation.repeatCount = Float.infinity
+        
+        pulsatingLayer?.add(animation, forKey: "pulsing")
     }
     
     private func beginDownloadFile(){
@@ -92,19 +121,20 @@ class ViewController: UIViewController, URLSessionDownloadDelegate {
     }
 
 
-    fileprivate func animateCircle() {
-        let basicAnimation = CABasicAnimation(keyPath: "strokeEnd")
-        basicAnimation.toValue = 1
-        basicAnimation.duration = 2
-        basicAnimation.fillMode = kCAFillModeForwards
-        basicAnimation.isRemovedOnCompletion = false
-        
-        shapeLayer.add(basicAnimation, forKey: "Basic")
-    }
+//    fileprivate func animateCircle() {
+//        let basicAnimation = CABasicAnimation(keyPath: "strokeEnd")
+//        basicAnimation.toValue = 1
+//        basicAnimation.duration = 2
+//        basicAnimation.fillMode = kCAFillModeForwards
+//        basicAnimation.isRemovedOnCompletion = false
+//
+//        shapeLayer.add(basicAnimation, forKey: "Basic")
+//    }
     
     @objc private func handleTap(){
         
         beginDownloadFile()
+        percentagLabel.text = "Wait"
         
         //animateCircle()
         
